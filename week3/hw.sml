@@ -72,3 +72,24 @@ fun all_answers f lst =
     in
 	helper lst (SOME [])
     end
+
+val count_wildcards = g (fn x => 1) (fn x => 0)
+
+val count_wild_and_variable_lengths = g (fn x => 1) (fn s => String.size s)
+
+fun count_some_var (str, pat) = g (fn x => 0) (fn x => if x = str then 1 else 0) pat
+
+fun check_pat pat =
+	let
+		fun get_vars ps acc = case ps of
+			Variable x => x :: acc
+			| TupleP pss => foldl (fn (a, p) => get_vars p a) acc
+			| ConstructorP(_, p) => get_vars p acc
+			| _ => acc
+
+		fun has_dup xs = case xs of
+			[] => false
+			| y::ys => if (List.exists (fn x => x = y) ys) then true else has_dup(ys)
+	in
+		not (has_dup (get_vars pat []))
+	end
