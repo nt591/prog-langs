@@ -76,10 +76,10 @@ fun similar_names (subs : string list list, user_name: full_name) =
       =
       case name_subs of
         [] => people
-        | y::ys => make_names_from_subs(ys, { first=y, last=last,
-        middle=middle } :: people);
+        | y::ys => make_names_from_subs(ys, people @ [{ first=y, last=last,
+        middle=middle }]);
   in
-    make_names_from_subs(filtered_names, [])
+    make_names_from_subs(filtered_names, [user_name])
   end
 
 fun card_color (suit, rank) =
@@ -118,7 +118,7 @@ fun sum_cards (cards : card list) =
     fun count (cs, acc) =
       case cs of
         [] => acc
-        | x :: xs => count(cs, acc + (card_value x))
+        | x :: xs => count(xs, acc + (card_value x))
   in
     count(cards, 0)
   end
@@ -130,4 +130,26 @@ fun score (cards : card list, goal : int) =
     - card_sum);
   in
     if (all_same_color cards) then prelim_score div 2 else prelim_score
+  end
+
+fun officiate (cards : card list, moves : move list, goal : int) =
+  let
+    fun get_score (cs : card list, mvs : move list, hand : card list) =
+      if sum_cards hand > goal then score (hand, goal) else
+      case mvs of
+        (*  no more moves, get score*)
+        [] => score (hand, goal)
+        | x :: xs => (
+          case x of
+            (* throw away a card from hand *)
+            Discard crd => get_score ( cs, xs, remove_card (hand, crd, IllegalMove))
+            | Draw => (
+              case cs of
+                (* no more cards to draw, get score *)
+                [] => score (hand, goal)
+                | y :: ys => get_score ( ys, xs, y :: hand)
+            )
+          )
+  in
+    get_score (cards, moves, [])
   end

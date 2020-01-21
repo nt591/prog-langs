@@ -81,15 +81,38 @@ fun count_some_var (str, pat) = g (fn x => 0) (fn x => if x = str then 1 else 0)
 
 fun check_pat pat =
 	let
-		fun get_vars ps acc = case ps of
-			Variable x => x :: acc
-			| TupleP pss => foldl (fn (a, p) => get_vars p a) acc
-			| ConstructorP(_, p) => get_vars p acc
-			| _ => acc
+		fun get_vars pat acc = case pat of
+				Variable x => x :: acc
+				| TupleP pss => List.foldl (fn (p, a) => (get_vars p []) @ a) [] pss
+				| ConstructorP(_, p) => get_vars p acc
+				| _ => []
+
+		val strings = get_vars pat []
 
 		fun has_dup xs = case xs of
 			[] => false
 			| y::ys => if (List.exists (fn x => x = y) ys) then true else has_dup(ys)
 	in
-		not (has_dup (get_vars pat []))
+		not (has_dup strings)
 	end
+
+fun match (v, pat) =
+	case pat of
+		Wildcard => SOME []
+		| UnitP => (case v of
+			Unit => SOME []
+			| _ => NONE)
+		| ConstP i => (case v of
+			Const j => if i = j then SOME [] else NONE
+			| _ => NONE)
+		| TupleP pats => (case v of
+			Tuple vals => if (List.length vals) = List.length(pats) then (all_answers match (ListPair.zip (vals, pats))) else NONE
+			| _ => NONE)
+		| ConstructorP (s, p) => (case v of
+			Constructor (vs, vp) => if s = vs then match (vp, p) else NONE
+			| _ => NONE)
+		| Variable s => SOME [(s, v)]
+
+fun first_match v pat_list =
+	SOME (first_answer (fn pat => match (v, pat)) pat_list)
+	handle NoAnswer => NONE
