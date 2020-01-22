@@ -38,15 +38,15 @@ datatype typ = Anything
 
 val only_capitals = List.filter (fn x => Char.isUpper (String.sub (x, 0)))
 
-val longest_string1 = foldl (fn (acc, el) => if (String.size acc) >= (String.size el) then acc else el) ""
+val longest_string1 = foldl (fn (el, acc) => if (String.size acc) >= (String.size el) then acc else el) ""
 
-val longest_string2 = foldl (fn (acc, el) => if (String.size acc) > (String.size el) then acc else el) ""
+val longest_string2 = foldl (fn (el, acc) => if (String.size acc) > (String.size el) then acc else el) ""
 
 fun longest_string_helper f  = foldl f ""
 
-val longest_string3 = longest_string_helper (fn (acc, el) => if (String.size acc) >= (String.size el) then acc else el)
+val longest_string3 = longest_string_helper (fn (el, acc) => if (String.size acc) >= (String.size el) then acc else el)
 
-val longest_string4 = longest_string_helper (fn (acc, el) => if (String.size acc) > (String.size el) then acc else el)
+val longest_string4 = longest_string_helper (fn (el, acc) => if (String.size acc) > (String.size el) then acc else el)
 
 val longest_capitalized = longest_string1 o only_capitals
 
