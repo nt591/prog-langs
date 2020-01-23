@@ -71,3 +71,41 @@
           (+ (sum1 (car xs)) (sum1 (cdr xs))))))
 
 
+(define (sum2 xs)
+  (cond [(null? xs) 0]
+        [(number? (car xs)) (+ (car xs) (sum2 (cdr xs)))]
+        [ #t (+ (sum2 (car xs)) (sum2 (cdr xs)))]))
+
+(define (max-of-list xs)
+  (cond [(null? xs) (error "max-of-list given empty list")]
+        [(null? (cdr xs)) (car xs)]
+        [#t (let ([tlans (max-of-list (cdr xs))])
+              (if (> tlans (car xs))
+                  tlans
+                  (car xs)))]))
+
+; STREAMS
+; 1 1 1 1 1 ...
+(define ones (lambda () (cons 1 ones)))
+; 1 2 3 4 5 ...
+(define (f x) (cons x (lambda () (f (+ x 1)))))
+; again
+; (define nats (lambda () (f 1)))
+; again
+(define nats
+  (letrec ([f (lambda (x) (cons x (lambda () (f (+ x 1)))))])
+    (lambda () (f 1))))
+
+; 1 2 4 8 16
+(define powers-of-two
+  (letrec ([f (lambda (x) (cons x (lambda () (f (* x 2)))))])
+    (lambda () (f 1))))
+
+(define (stream-maker fn arg)
+  (letrec ([f (lambda (x) (cons x (lambda () (f (fn x arg)))))])
+    (lambda () (f 1))))
+
+(define nats2 (stream-maker + 1))
+(define powers2 (stream-maker * 2))
+
+; Macros
